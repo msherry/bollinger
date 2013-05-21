@@ -48,10 +48,14 @@ def main(symbol, N=20, K=2):
         'q': qu,
         'format': 'json',
         'env': 'store://datatables.org/alltableswithkeys',
+        'diagnostics': 'true'
     }
     req = requests.get(BASE, params=payload)
     if req.status_code != 200:
         raise Exception("Error {}".format(req.status_code))
+    if not req.json['query']['results']:
+        raise Exception(
+            req.json['query']['diagnostics']['javascript']['content'])
     quotes = list(reversed(req.json['query']['results']['quote']))
     closes = [float(q['Close']) for q in quotes]
 
@@ -73,5 +77,4 @@ if __name__ == '__main__':
     N = 20
     if len(sys.argv) > 2:
         N = int(sys.argv)[2]
-    print N
     main(sym, N=N)
