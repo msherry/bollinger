@@ -12,7 +12,9 @@ YQL_QUERY = ('select * from yahoo.finance.historicaldata where '
          'and endDate = "{end_date}"')
 YQL_BASE = 'http://query.yahooapis.com/v1/public/yql'
 
-CSV_BASE = 'http://ichart.yahoo.com/table.csv'
+CSV_HIST_BASE = 'http://ichart.yahoo.com/table.csv'
+
+CSV_CUR_BASE = 'http://download.finance.yahoo.com/d/quotes.csv'
 
 
 def moving_avgs(seq, N):
@@ -61,6 +63,7 @@ def _get_quotes_yql(symbol, start_date, end_date):
 
 
 def _get_quotes_csv(symbol, start_date, end_date):
+    # Historical data
     payload = {
         's': symbol,
         'a': start_date.month - 1,
@@ -72,8 +75,32 @@ def _get_quotes_csv(symbol, start_date, end_date):
         'g': 'd', # trading periods: https://code.google.com/p/yahoo-finance-managed/wiki/enumHistQuotesInterval
         'ignore': 'csv',
     }
-    req = requests.get(CSV_BASE, params=payload)
-    return list(reversed([q for q in csv.DictReader(req.content.splitlines(), delimiter=',')]))
+    req = requests.get(CSV_HIST_BASE, params=payload)
+    quotes = list(reversed([q for q in csv.DictReader(req.content.splitlines(),
+                                                      delimiter=',')]))
+
+    # Today's data
+    payload = {
+        's': symbol,
+        # Quote properties: https://code.google.com/p/yahoo-finance-managed/wiki/enumQuoteProperty
+        'f': 'nsl1d1',
+    }
+    req = requests.get(CSV_CUR_BASE, params=payload)
+    reader = csv.reader(req.content.splitlines(),
+                        delimiter=',')
+    # TODO: how can I get the header so I can use DictReader?
+    name, _, close, quote_date = reader.next()
+    # Date is in mon/day/year format
+    mon, day, year = quote_date.split('/')
+    quote_date = '-'.join([year, '%.02d' % int(mon), '%.02d' % int(day)])
+    if quote_date != quotes[-1]['Date']:
+        # Fake today's quote
+        quote = {
+            'Close': close,
+            'Date': quote_date
+        }
+        quotes.append(quote)
+    return quotes
 
 
 def get_quotes(symbol, start_date, end_date, mode='yql'):
