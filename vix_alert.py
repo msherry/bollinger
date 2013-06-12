@@ -122,13 +122,18 @@ def render(symbol, quotes, upper, lower):
     closes = [float(q['Close']) for q in quotes]
     dates = [date(*map(int, q['Date'].split('-'))) for q in quotes]
 
+    fig, ax = plt.subplots(1)
+
+    fig.autofmt_xdate()
+
     plt.title(symbol)
-    plt.plot(dates, closes)
-    plt.plot(dates, upper, 'r--')
-    plt.plot(dates, lower, 'r--')
     plt.ylabel('Closes')
 
-    b = [lower[-1], closes[-1], upper[-1]]
+    ax.plot(dates, closes)
+    ax.plot(dates, upper, 'r--')
+    ax.plot(dates, lower, 'r--')
+
+    # ax.fill_between(dates, lower, upper, facecolor='red', alpha=0.3)
 
     for var in (lower, closes, upper):
         plt.annotate('%0.2f' % var[-1], xy=(1, var[-1]), xytext=(8, 0),
@@ -142,7 +147,7 @@ def render(symbol, quotes, upper, lower):
 
 def main(symbol, N=20, K=2, days=90):
     end_date = date.today()
-    start_date = end_date - timedelta(days=max(days, int(N * 2 * 1.5)))
+    start_date = end_date - timedelta(days=days + N)
 
     quotes = get_quotes(symbol, start_date, end_date, mode='csv')
     closes = [float(q['Close']) for q in quotes]
