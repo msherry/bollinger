@@ -135,10 +135,12 @@ def render(symbol, quotes, upper, lower):
 
     # ax.fill_between(dates, lower, upper, facecolor='red', alpha=0.3)
 
-    for var in (lower, closes, upper):
+    for var, color in zip((lower, closes, upper), ('red', 'blue', 'red')):
         plt.annotate('%0.2f' % var[-1], xy=(1, var[-1]), xytext=(8, 0),
                      xycoords=('axes fraction', 'data'),
-                     textcoords='offset points')
+                     textcoords='offset points',
+                     color=color,
+        )
     # second_axis = plt.twinx()
     # second_axis.set_yticks([lower[-1], closes[-1], upper[-1]])
 
