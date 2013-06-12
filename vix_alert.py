@@ -113,19 +113,27 @@ def get_quotes(symbol, start_date, end_date, mode='yql'):
     return closes
 
 
-def main(symbol, N=20, K=2):
+def main(symbol, N=20, K=2, days=90):
     end_date = date.today()
-    start_date = end_date - timedelta(days=int(N * 2 * 1.5))
+    start_date = end_date - timedelta(days=max(days, int(N * 2 * 1.5)))
 
     quotes = get_quotes(symbol, start_date, end_date, mode='csv')
     closes = [float(q['Close']) for q in quotes]
 
     mas, sigmas = moving_avgs(closes, N)
     upper_bollinger = [x + (K * sigmas[i]) for i, x in enumerate(mas)]
+    lower_bollinger = [x - (K * sigmas[i]) for i, x in enumerate(mas)]
 
     for i, q in enumerate(quotes[N:]):
-        print (q['Date'], q['Close'], '%.02f' % upper_bollinger[i],
-               '*' if float(q['Close']) > upper_bollinger[i] else ' ')
+        print '{date}, {close}, {upper}, {lower}, {signal}'.format(**{
+            'date': q['Date'],
+            'close': q['Close'],
+            'upper': '%.02f' % upper_bollinger[i],
+            'lower': '%.02f' % lower_bollinger[i],
+            'signal': ('+' if float(q['Close']) > upper_bollinger[i] else
+                       '-' if float(q['Close']) < lower_bollinger[i] else
+                       ' '),
+        })
 
 
 def usage(name):
