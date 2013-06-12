@@ -119,7 +119,7 @@ def get_quotes(symbol, start_date, end_date, mode='yql'):
     return closes
 
 def render(symbol, quotes, upper, lower):
-    closes = [q['Close'] for q in quotes]
+    closes = [float(q['Close']) for q in quotes]
     dates = [date(*map(int, q['Date'].split('-'))) for q in quotes]
 
     plt.title(symbol)
@@ -127,6 +127,16 @@ def render(symbol, quotes, upper, lower):
     plt.plot(dates, upper, 'r--')
     plt.plot(dates, lower, 'r--')
     plt.ylabel('Closes')
+
+    b = [lower[-1], closes[-1], upper[-1]]
+
+    for var in (lower, closes, upper):
+        plt.annotate('%0.2f' % var[-1], xy=(1, var[-1]), xytext=(8, 0),
+                     xycoords=('axes fraction', 'data'),
+                     textcoords='offset points')
+    # second_axis = plt.twinx()
+    # second_axis.set_yticks([lower[-1], closes[-1], upper[-1]])
+
     plt.savefig('output.png')
 
 
