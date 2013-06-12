@@ -7,6 +7,12 @@ import os
 import requests
 import sys
 
+import matplotlib
+matplotlib.use('AGG')
+
+import matplotlib.pyplot as plt
+plt.ioff()
+
 YQL_QUERY = ('select * from yahoo.finance.historicaldata where '
          'symbol = "{symbol}" and startDate = "{start_date}" '
          'and endDate = "{end_date}"')
@@ -112,6 +118,17 @@ def get_quotes(symbol, start_date, end_date, mode='yql'):
         raise Exception('Unknown mode {}'.format(mode))
     return closes
 
+def render(symbol, quotes, upper, lower):
+    closes = [q['Close'] for q in quotes]
+    dates = [date(*map(int, q['Date'].split('-'))) for q in quotes]
+
+    plt.title(symbol)
+    plt.plot(dates, closes)
+    plt.plot(dates, upper, 'r--')
+    plt.plot(dates, lower, 'r--')
+    plt.ylabel('Closes')
+    plt.savefig('output.png')
+
 
 def main(symbol, N=20, K=2, days=90):
     end_date = date.today()
@@ -123,6 +140,7 @@ def main(symbol, N=20, K=2, days=90):
     mas, sigmas = moving_avgs(closes, N)
     upper_bollinger = [x + (K * sigmas[i]) for i, x in enumerate(mas)]
     lower_bollinger = [x - (K * sigmas[i]) for i, x in enumerate(mas)]
+    render(symbol, quotes[N-1:], upper_bollinger, lower_bollinger)
 
     for i, q in enumerate(quotes[N:]):
         print '{date}, {close}, {upper}, {lower}, {signal}'.format(**{
