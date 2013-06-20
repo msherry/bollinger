@@ -159,7 +159,7 @@ def main(symbol, N=20, K=2, days=90):
     lower_bollinger = [x - (K * sigmas[i]) for i, x in enumerate(mas)]
     render(symbol, quotes[N-1:], upper_bollinger, lower_bollinger)
 
-    for i, q in enumerate(quotes[N:]):
+    for i, q in enumerate(quotes[N-1:]):
         print '{date}, {close}, {upper}, {lower}, {signal}'.format(**{
             'date': q['Date'],
             'close': q['Close'],
