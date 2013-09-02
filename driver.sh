@@ -19,11 +19,4 @@ Content-Type: multipart/mixed; boundary=_frontier
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 EOF
-else
-    (cat <<EOF; tail -1 out.txt) | /usr/sbin/sendmail -oi -t -f $EMAIL
-From: $EMAIL
-To: $EMAIL
-Subject: Nothing to report
-
-EOF
 fi
